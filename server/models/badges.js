@@ -1,30 +1,32 @@
-const { DataTypes } = require('sequelize');
-const db = require('../config/database');
+const sequelize = new Sequelize('sqlite::memory')
+const { DataTypes,Sequelize } = require('sequelize');
 
-const Badge = db.define('badge', {
+
+const Badge = sequelize.define('Badge', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
-    autoIncrement: true
+    allowNull: false,
+    autoIncrement: true,
   },
   name: {
-    type: DataTypes.STRING,
-    allowNull: false
+    type: DataTypes.STRING(255),
+    allowNull: false,
   },
   season: {
-    type: DataTypes.STRING,
-    allowNull: true
+    type: DataTypes.STRING(50),
+    allowNull: true,
   },
   year: {
     type: DataTypes.INTEGER,
-    allowNull: true
+    allowNull: true,
   },
   description: {
     type: DataTypes.TEXT,
-    allowNull: true
-  }
+    allowNull: true,
+  },
 }, {
-  timestamps: false,
-  tableName: 'badges' 
+  tableName: 'badges',
 });
+
 module.exports = Badge;

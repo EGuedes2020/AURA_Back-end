@@ -1,43 +1,40 @@
-const { Model, DataTypes } = require('sequelize');
-const sequelize = require('./database');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../database/connection');
 const Institution = require('./institution');
 
-class Worker extends Model {}
-
-Worker.init({
+const Worker = sequelize.define('Worker', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
+    allowNull: false,
     autoIncrement: true,
-    allowNull: false
   },
   name: {
-    type: DataTypes.STRING,
-    allowNull: false
+    type: DataTypes.STRING(255),
+    allowNull: false,
   },
   email: {
-    type: DataTypes.STRING
+    type: DataTypes.STRING(255),
+    allowNull: true,
   },
   phone_number: {
-    type: DataTypes.STRING
+    type: DataTypes.STRING(20),
+    allowNull: true,
   },
   institution_id: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
     references: {
       model: Institution,
-      key: 'id'
-    }
+      key: 'id',
+    },
   },
   role: {
-    type: DataTypes.STRING
-  }
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
 }, {
-  sequelize,
-  modelName: 'worker',
-  tableName: 'workers'
+  tableName: 'workers',
 });
-
-Worker.belongsTo(Institution, { foreignKey: 'institution_id' });
 
 module.exports = Worker;

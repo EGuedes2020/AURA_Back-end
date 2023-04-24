@@ -1,30 +1,26 @@
-module.exports = (sequelize, DataTypes) => {
-    const InstitutionBadge = sequelize.define('InstitutionBadges', {
-      institutionId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'Institutions',
-          key: 'id',
-        },
-      },
-      badgeId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'Badges',
-          key: 'id',
-        },
-      },
-    });
-  
-    InstitutionBadges.associate = (models) => {
-      InstitutionBadges.belongsTo(models.Institutions, {
-        foreignKey: 'institutionId',
-      });
-      InstitutionBadges.belongsTo(models.Badges, { foreignKey: 'badgeId' });
-    };
-  
-    return InstitutionBadge;
-  };
-  
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
+
+const InstitutionBadge = sequelize.define('institution_badge', {
+  institutionId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'institution',
+      key: 'id'
+    }
+  },
+  badgeId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'badge',
+      key: 'id'
+    }
+  }
+}, {
+  tableName: 'institution_badges',
+  timestamps: false
+});
+
+module.exports = InstitutionBadge;

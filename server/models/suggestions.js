@@ -1,11 +1,30 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const sequelize = require('../database/connection');
+const Institution = require('./institution');
+const Worker = require('./worker');
 
-const Suggestions = sequelize.define('suggestion', {
+const Suggestion = sequelize.define('Suggestion', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
+    allowNull: false,
     autoIncrement: true,
+  },
+  institution_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: Institution,
+      key: 'id',
+    },
+  },
+  author_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: Worker,
+      key: 'id',
+    },
   },
   description: {
     type: DataTypes.TEXT,
@@ -13,16 +32,11 @@ const Suggestions = sequelize.define('suggestion', {
   },
   date_created: {
     type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
     allowNull: false,
+    defaultValue: DataTypes.NOW,
   },
+}, {
+  tableName: 'suggestions',
 });
 
-// Define associations
-const Institution = require('./Institution');
-const Worker = require('./Worker');
-
-Suggestion.belongsTo(Institution, { foreignKey: 'institution_id' });
-Suggestion.belongsTo(Worker, { foreignKey: 'author_id' });
-
-module.exports = Suggestions;
+module.exports = Suggestion;

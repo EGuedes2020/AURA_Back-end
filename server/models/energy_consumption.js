@@ -1,16 +1,21 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const sequelize = new Sequelize('sqlite::memory')
+const { DataTypes,Sequelize } = require('sequelize');
+const Institution = require('./institution');
 
-const EnergyConsumption = sequelize.define('energy_consumption', {
+const EnergyConsumption = sequelize.define('EnergyConsumption', {
   id: {
     type: DataTypes.INTEGER,
+    primaryKey: true,
     allowNull: false,
     autoIncrement: true,
-    primaryKey: true,
   },
   institution_id: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
+    references: {
+      model: Institution,
+      key: 'id',
+    },
   },
   year: {
     type: DataTypes.INTEGER,
@@ -27,15 +32,14 @@ const EnergyConsumption = sequelize.define('energy_consumption', {
   cost_energy: {
     type: DataTypes.DOUBLE,
     allowNull: false,
+    defaultValue: 0,
     get() {
       const energyConsumed = this.getDataValue('energy_consumed');
-      const cost = 0.15;
-      return energyConsumed * cost;
+      return energyConsumed * 0.15;
     },
   },
 }, {
   tableName: 'energy_consumption',
-  underscored: true,
 });
 
 module.exports = EnergyConsumption;

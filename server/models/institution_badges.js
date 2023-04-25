@@ -1,22 +1,39 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const { DataTypes,Sequelize } = require('sequelize');
+const Institution = require('./institutions');
+const Badges = require('./badges');
 
-const InstitutionBadge = sequelize.define('institution_badge', {
-  institutionId: {
+
+
+const sequelize = new Sequelize('AURA_db', 'postgres', 'postgres', {
+  host: 'aura-database-instance.cts91ecvtypq.eu-north-1.rds.amazonaws.com',
+  dialect: 'postgres'
+});
+
+
+const InstitutionBadge = sequelize.define('InstitutionBadge', {
+  institution_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'institution',
-      key: 'id'
-    }
+      model: Institution,
+      key: 'id',
+    },
   },
-  badgeId: {
+  badge_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'badge',
-      key: 'id'
-    }
+      model: Badges,
+      key: 'id',
+    },
+  },
+  institution_name: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  badge_name: {
+    type: DataTypes.STRING(255),
+    allowNull: true
   }
 }, {
   tableName: 'institution_badges',

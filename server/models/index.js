@@ -1,6 +1,6 @@
 const { DataTypes,Sequelize } = require('sequelize');
 
-// Replace with your database credentials
+
 const sequelize = new Sequelize('Aura_db', 'postgres', 'postgres', {
   host: 'aura-database-instance.cts91ecvtypq.eu-north-1.rds.amazonaws.com',
   dialect: 'postgres',
@@ -29,6 +29,9 @@ Suggestions.belongsTo(Institutions, { foreignKey: 'institution_id' });
 
 Institutions.belongsToMany(Badges, { through: InstitutionBadges });
 Badges.belongsToMany(Institutions, { through: InstitutionBadges });
+
+InstitutionBadges.belongsTo(Institutions, { foreignKey: 'institution_id' });
+Institutions.hasMany(InstitutionBadges, { foreignKey: 'institution_id' });
 
 // Export models
 module.exports = {

@@ -1,7 +1,13 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../database/connection');
-const Institution = require('./institution');
-const Worker = require('./worker');
+const Institution = require('./institutions');
+const Worker = require('./workers');
+
+const { Sequelize, DataTypes } = require('sequelize');
+
+const sequelize = new Sequelize('AURA_db', 'postgres', 'postgres', {
+  host: 'aura-database-instance.cts91ecvtypq.eu-north-1.rds.amazonaws.com',
+  dialect: 'postgres'
+});
+
 
 const Suggestion = sequelize.define('Suggestion', {
   id: {
@@ -35,8 +41,17 @@ const Suggestion = sequelize.define('Suggestion', {
     allowNull: false,
     defaultValue: DataTypes.NOW,
   },
+  institution_name: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  }, 
+ author_name: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  }
 }, {
   tableName: 'suggestions',
+  timestamps: false
 });
 
 module.exports = Suggestion;

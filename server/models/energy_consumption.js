@@ -1,6 +1,10 @@
-const sequelize = new Sequelize('sqlite::memory')
 const { DataTypes,Sequelize } = require('sequelize');
-const Institution = require('./institution');
+const Institution = require('./institutions');
+
+const sequelize = new Sequelize('AURA_db', 'postgres', 'postgres', {
+  host: 'aura-database-instance.cts91ecvtypq.eu-north-1.rds.amazonaws.com',
+  dialect: 'postgres'
+});
 
 const EnergyConsumption = sequelize.define('EnergyConsumption', {
   id: {
@@ -38,8 +42,13 @@ const EnergyConsumption = sequelize.define('EnergyConsumption', {
       return energyConsumed * 0.15;
     },
   },
+  institution_name: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  }, 
 }, {
   tableName: 'energy_consumption',
+  timestamps: false
 });
 
 module.exports = EnergyConsumption;

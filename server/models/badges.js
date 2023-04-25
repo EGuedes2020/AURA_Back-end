@@ -1,5 +1,9 @@
-const sequelize = new Sequelize('sqlite::memory')
 const { DataTypes,Sequelize } = require('sequelize');
+const sequelize = new Sequelize('AURA_db', 'postgres', 'postgres', {
+  host: 'aura-database-instance.cts91ecvtypq.eu-north-1.rds.amazonaws.com',
+  dialect: 'postgres'
+});
+
 
 
 const Badge = sequelize.define('Badge', {
@@ -27,6 +31,7 @@ const Badge = sequelize.define('Badge', {
   },
 }, {
   tableName: 'badges',
+  timestamps: false,
 });
 
 module.exports = Badge;

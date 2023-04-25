@@ -27,7 +27,7 @@ const Institution = sequelize.define('Institution', {
   },
 }, {
   tableName: 'institutions',
-  timestamps: false, // Set this to true if you want Sequelize to manage timestamps automatically
+  timestamps: false, 
 });
 
 module.exports = Institution;

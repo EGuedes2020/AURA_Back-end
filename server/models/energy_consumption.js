@@ -6,7 +6,7 @@ const sequelize = new Sequelize('AURA_db', 'postgres', 'postgres', {
   dialect: 'postgres'
 });
 
-const EnergyConsumption = sequelize.define('EnergyConsumption', {
+const Energy = sequelize.define('EnergyConsumption', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -51,4 +51,4 @@ const EnergyConsumption = sequelize.define('EnergyConsumption', {
   timestamps: false
 });
 
-module.exports = EnergyConsumption;
+module.exports = Energy;

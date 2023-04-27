@@ -40,10 +40,34 @@ const Worker = sequelize.define('Worker', {
   institution_name: {
     type: DataTypes.STRING(255),
     allowNull: true
-  }
-}, {
-  tableName: 'workers',
-  timestamps: false,
-});
+  },
+
+password: {
+      type: DataTypes.VIRTUAL,
+      allowNull: true,
+      validate: {
+        len: [6, 255],
+      },
+    },
+    password_hash: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+  }, {
+    tableName: 'workers',
+    timestamps: false,
+    hooks: {
+      beforeSave: async (worker) => {
+        if (worker.changed('password')) {
+          const salt = await bcrypt.genSalt();
+          worker.password_hash = await bcrypt.hash(worker.password, salt);
+        }
+      },
+    },
+  });
+
+  Worker.prototype.comparePassword = async function (password) {
+    return bcrypt.compare(password, this.password_hash);
+  };
 
 module.exports = Worker;

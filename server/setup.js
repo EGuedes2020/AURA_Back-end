@@ -3,7 +3,13 @@ const express = require('express');
 const pg = require('pg');
 const cors = require('cors');
 const app = express();
+app.use(express.json())
 app.use(cors());
+
+//---------------------------------------AUTH
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
 
 //----------------------------------------LIGAÇÃO A BASE DE DADOS
 const { Sequelize } = require('sequelize');
@@ -24,8 +30,6 @@ const InstitutionBadge = require('./models/institution_badges');
 const { check,query, validationResult } = require('express-validator');
 
 //--------------------------------ERROR-HANDLING MIDDLEWARE
-
-
 const errorHandler = (err, req, res, next) => {
   console.error(err.stack); 
   let status;
@@ -271,8 +275,104 @@ app.get('/api/institutions/:id/badges', [
 
 
 
+//(11) Registo de um novo utilizador
+app.post('/api/signup', async (req, res) => {
+  try {
+    const { name, email, phone_number, institution_id, role, institution_name, password } = req.body;
 
-//-----------------------------TESTE DE LIGAÇÃO--------------------------------
+    if (!password || typeof password !== 'string') {
+      return res.status(400).json({ error: 'Invalid password' });
+    }
+
+    // Hash the password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    const worker = await Worker.create({
+      name,
+      email,
+      phone_number,
+      institution_id,
+      role,
+      institution_name,
+      password_hash: hashedPassword,
+    });
+
+    // Create a token for the new user
+    const token = jwt.sign({ worker_id: worker.id }, 'SECRET_KEY');
+
+    res.status(201).json({ worker, token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+//(12) Autenticação de um utilizador
+app.post('/api/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Encontra worker na BD
+    const worker = await Worker.findOne({ where: { email } });
+
+    if (!worker) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Checka password
+    const passwordMatch = await bcrypt.compare(password, worker.password_hash);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Invalid password' });
+    }
+
+    // Cria token
+    const token = jwt.sign({ worker_id: worker.id },'SECRET_KEY');
+
+    //Verifica login
+    res.status(200).json({ message: 'Login successful', token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
+
+//Verifica o JWT 
+app.get('/api/protected', verifyToken, (req, res) => {
+  // If we reach this point, the token is valid
+  res.status(200).json({ message: 'This route is protected' });
+});
+
+function verifyToken(req, res, next) {
+  // Get the token from the header
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
+
+  // If no token is found
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized: No token provided' });
+  }
+
+  // Verify the token
+  jwt.verify(token, 'SECRET_KEY', (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ error: 'Forbidden: Invalid token' });
+    }
+    // Save the decoded token to the request object
+    req.worker_id = decoded.worker_id;
+    next();
+  });
+}
+
+
+
+
+
+
+
+//-----------------------------TESTE DE LIGAÇÃO-------------------------------
 try {
   sequelize.authenticate();
   console.log('Connection has been established successfully.');

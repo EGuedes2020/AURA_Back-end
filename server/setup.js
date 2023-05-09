@@ -29,39 +29,8 @@ const InstitutionBadge = require('./models/institution_badges');
 //--------------------------------EXPRESS VALIDATOR
 const { check,query, validationResult } = require('express-validator');
 
-//--------------------------------ERROR-HANDLING MIDDLEWARE
-const errorHandler = (err, req, res, next) => {
-  console.error(err.stack); 
-  let status;
-  let message;
-  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-    status = 400;
-    message = 'Invalid JSON payload';
-    console.error(err)
-  } else if (err instanceof MyCustomError) {
-    status = 500;
-    message = 'Something went wrong with our servers. We are already working to fix it.';
-    console.error(err)
-  } else if (err.status === 404) {
-    status = 404;
-    message = 'Not foundddd';
-    console.error(err)
-  } else {
-    status = 500;
-    message = 'Internal server error';
-    console.error(err)
-  }
-
-  res.status(status).json({ message });
-  console.log(err)
-};
-
-app.use(errorHandler)
-
-
-//------------------------------ROTAS
-
-// (1) Todas as instituições
+//------------------------------ROTAS---------------------------------------------------------
+// (1.1) Todas as instituições
 app.get('/api/institutions', async (req, res, next) => {
   try {
     const institutions = await Institution.findAll();
@@ -71,7 +40,49 @@ app.get('/api/institutions', async (req, res, next) => {
   }
 });
 
-// (2) Todas as sugestões
+//(1.2)Atualiza uma instituição
+app.put('/api/institutions/:id', async (req, res, next) => {
+  try {
+    const institution = await Institution.findByPk(req.params.id);
+    if (!institution) {
+      res.status(404).send("Institution not found");
+    } else {
+      await institution.update(req.body);
+      res.status(200).json(institution);
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+//(1.3)Cria uma nova instituição
+app.post('/api/institutions', async (req, res, next) => {
+  try {
+    const institution = await Institution.create(req.body);
+    res.status(201).json(institution);
+  } catch (err) {
+    next(err);
+  }
+});
+
+//(1.4)Apaga uma nova instituição
+app.delete('/api/institutions/:id', async (req, res, next) => {
+  try {
+    const institution = await Institution.findByPk(req.params.id);
+    if (!institution) {
+      res.status(404).send("Institution not found");
+    } else {
+      await institution.destroy();
+      res.status(204).send();
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+
+
+//(2.1) Todas as sugestões
 app.get('/api/suggestions', [
   check('institution_id').optional().isInt(),
   check('author_id').optional().isInt(),
@@ -91,7 +102,48 @@ app.get('/api/suggestions', [
   }
 });
 
-// (3) Todos os trabalhadores
+//(2.2) Atualiza uma sugestão
+app.put('/api/suggestions/:id', async (req, res, next) => {
+  try {
+    const suggestion = await Suggestion.findByPk(req.params.id);
+    if (!suggestion) {
+      res.status(404).send("Suggestion not found");
+    } else {
+      await suggestion.update(req.body);
+      res.status(200).json(suggestion);
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+//(2.3) Cria uma nova sugestão
+app.post('/api/suggestions', async (req, res, next) => {
+  try {
+    const suggestion = await Suggestion.create(req.body);
+    res.status(201).json(suggestion);
+  } catch (err) {
+    next(err);
+  }
+});
+
+//(2.4) Apaga uma sugestão
+app.delete('/api/suggestions/:id', async (req, res, next) => {
+  try {
+    const suggestion = await Suggestion.findByPk(req.params.id);
+    if (!suggestion) {
+      res.status(404).send("Suggestion not found");
+    } else {
+      await suggestion.destroy();
+      res.status(204).send();
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+
+//(3.1) Todos os trabalhadores
 app.get('/api/workers', [
   check('name').optional().isLength({ min: 1 }).withMessage('Name is required and must be at least 1 character'),
   check('email').isEmail().optional({ nullable: true }),
@@ -112,7 +164,73 @@ app.get('/api/workers', [
   }
 });
 
-// (4) Todos os badges
+
+//(3.2) Atualiza um trabalhador 
+app.put('/api/workers/:id', [
+  check('name').isLength({ min: 1 }).withMessage('Name is required and must be at least 1 character'),
+  check('email').isEmail().optional({ nullable: true }),
+  check('phone_number').isMobilePhone().optional({ nullable: false }),
+  check('role').isLength({ max: 50 }).optional({ nullable: false }),
+], async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
+    
+    const worker = await Worker.findByPk(req.params.id);
+    if (!worker) {
+      return res.status(404).send("Worker not found");
+    }
+    await worker.update(req.body);
+    res.status(200).json(worker);
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
+
+//(3.3) Adiciona um trabalhador (semelhante ao 11)
+app.post('/api/workers', [
+  check('name').isLength({ min: 1 }).withMessage('Name is required and must be at least 1 character'),
+  check('email').isEmail().optional({ nullable: true }),
+  check('phone_number').isMobilePhone().optional({ nullable: false }),
+  check('role').isLength({ max: 50 }).optional({ nullable: false }),
+], async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
+    
+    const worker = await Worker.create(req.body);
+    res.status(201).json(worker);
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
+
+//(3.4) Apaga um trabalhador trabalhadores
+app.delete('/api/workers/:id', async (req, res, next) => {
+  try {
+    const worker = await Worker.findByPk(req.params.id);
+    if (!worker) {
+      res.status(404).send("Worker not found");
+    } else {
+      await worker.destroy();
+      res.status(204).send();
+    }
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
+
+// (4.1) Todos os badges
 app.get('/api/badges', [
   check('name').optional().notEmpty(),
   check('season').optional(),
@@ -135,8 +253,51 @@ app.get('/api/badges', [
   console.error(err.stack);
   res.status(500).json({ message: 'Internal server error' });
 });
+// (4.2) Atualiza um badge
+app.put('/api/badges/:id', async (req, res, next) => {
+  try {
+    const badge = await Badge.findByPk(req.params.id);
+    if (!badge) {
+      return res.status(404).json({ message: 'Badge not found' });
+    }
 
-// (5) Todos os consumos de energia
+    await badge.update(req.body);
+    res.json(badge);
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
+// (4.3) Adiciona um badge
+app.post('/api/badges', async (req, res, next) => {
+  try {
+    const badge = await Badge.create(req.body);
+    res.json(badge);
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
+// (4.4) Apaga um badge
+app.delete('/api/badges/:id', async (req, res, next) => {
+  try {
+    const badge = await Badge.findByPk(req.params.id);
+    if (!badge) {
+      return res.status(404).json({ message: 'Badge not found' });
+    }
+
+    await badge.destroy();
+    res.json({ message: 'Badge deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
+
+//(5.1) Todos os consumos de energia
 app.get('/api/energy', [
   check('year').optional().isInt({ min: 1900, max: 2100 }),
   check('month').optional().isInt({ min: 1, max: 12 }),
@@ -155,6 +316,50 @@ app.get('/api/energy', [
     next(err);
   }
 });
+
+//(5.2) Atualiza um consumos de energia
+app.put('/api/energy/:id', async (req, res, next) => {
+  try {
+    const energy = await Energy.findByPk(req.params.id);
+    if (!energy) {
+      return res.status(404).json({ message: 'Energy data not found' });
+    }
+
+    await energy.update(req.body);
+    res.json(energy);
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
+//(5.3) Adiciona um consumo de energia
+app.post('/api/energy', async (req, res, next) => {
+  try {
+    const energy = await Energy.create(req.body);
+    res.json(energy);
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
+//(5.4) Apaga um consumo de energia
+app.delete('/api/energy/:id', async (req, res, next) => {
+  try {
+    const energy = await Energy.findByPk(req.params.id);
+    if (!energy) {
+      return res.status(404).json({ message: 'Energy data not found' });
+    }
+
+    await energy.destroy();
+    res.json({ message: 'Energy data deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
 
 // (6) Histórico de Badges atribuídos a instituições
 app.get('/api/institutions-badges', [
@@ -341,33 +546,29 @@ app.post('/api/login', async (req, res) => {
 
 //Verifica o JWT 
 app.get('/api/protected', verifyToken, (req, res) => {
-  // If we reach this point, the token is valid
-  res.status(200).json({ message: 'This route is protected' });
+  // Se aparecer esta mensagem, o token é valido
+  res.status(200).json({ message: 'Valid Token' });
 });
 
 function verifyToken(req, res, next) {
-  // Get the token from the header
+  // Get the token
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1];
 
-  // If no token is found
+  // No token
   if (!token) {
     return res.status(401).json({ error: 'Unauthorized: No token provided' });
   }
 
-  // Verify the token
+  // Verify  token
   jwt.verify(token, 'SECRET_KEY', (err, decoded) => {
     if (err) {
       return res.status(403).json({ error: 'Forbidden: Invalid token' });
     }
-    // Save the decoded token to the request object
     req.worker_id = decoded.worker_id;
     next();
   });
 }
-
-
-
 
 
 
@@ -384,5 +585,62 @@ try {
 app.listen(3000, () => {
   console.log('Server listening on port 3000');
 });
+
+//--------------------------------ERROR-HANDLING MIDDLEWARE
+//401
+app.use((err, req, res, next) => {
+  if (err.status === 401) {
+    res.status(401).send('Unauthorized');
+  } else {
+    next(err);
+  }
+});
+
+//403
+app.use((err, req, res, next) => {
+  if (err.status === 403) {
+    res.status(403).send('Forbidden');
+  } else {
+    next(err);
+  }
+});
+
+//404
+app.use((req, res, next) => {
+  res.status(404).send('Page Not Found');
+});
+
+//422
+app.use((err, req, res, next) => {
+  if (err.status === 422) {
+    res.status(422).send('Unprocessable Entity');
+  } else {
+    next(err);
+  }
+});
+
+//429
+app.use((err, req, res, next) => {
+  if (err.status === 429) {
+    res.status(429).send('Too Many Requests');
+  } else {
+    next(err);
+  }
+});
+
+//500
+app.use((err, req, res, next) => {
+  res.status(500).send('Something Broke!');
+});
+
+//503
+app.use((err, req, res, next) => {
+  if (err.status === 503) {
+    res.status(503).send('Service Unavailable');
+  } else {
+    next(err);
+  }
+});
+
 
 

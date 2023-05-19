@@ -4,6 +4,7 @@ const pg = require('pg');
 const cors = require('cors');
 const app = express();
 const cookieParser = require('cookie-parser');
+const nodemailer = require('nodemailer')
 app.use(cookieParser());
 app.use(express.json())
 app.use(cors());
@@ -30,6 +31,38 @@ const InstitutionBadge = require('./models/institution_badges');
 
 //--------------------------------EXPRESS VALIDATOR
 const { check,query, validationResult } = require('express-validator');
+
+//--------------------------------NODEMAILER
+app.post('/api/send-email', (req, res) => {
+  
+  const transporter = nodemailer.createTransport({
+    host:'smtp.gmail.com',
+    service: 'gmail',
+    secure: true,
+    auth: {
+      user: 'luisffsantoos@gmail.com',
+      pass: 'lomdhajbvvozpqqg'
+    }
+  });
+
+  const mailOptions = {
+    from: 'luisffsantoos@gmail.com',
+    to: 'luisssferreira24@gmail.com',
+    subject: 'AURA INVITE',
+    text: 'Usa este link para aceder à nossa aplicação: https://www.youtube.com/watch?v=dQw4w9WgXcQ ',
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error('Error occurred while sending email:', error);
+      res.status(500).json({ error: 'Failed to send email' });
+    } else {
+      console.log('Email sent:', info.response);
+      res.status(200).json({ message: 'Email sent successfully' });
+    }
+  });
+});
+
 
 //------------------------------ROTAS---------------------------------------------------------
 // (1.1) Todas as instituições

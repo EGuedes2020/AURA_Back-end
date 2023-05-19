@@ -34,8 +34,7 @@ const { check,query, validationResult } = require('express-validator');
 
 //--------------------------------NODEMAILER
 app.post('/api/send-email', (req, res) => {
-
-
+  
   const transporter = nodemailer.createTransport({
     host:'smtp.gmail.com',
     service: 'gmail',

@@ -554,7 +554,6 @@ function verifyToken(req, res, next) {
   if (!token) {
     token = req.cookies.jwt;
   }
-
   // No token
   if (!token) {
     return res.status(401).json({ error: 'Unauthorized: No token provided' });

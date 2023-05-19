@@ -3,6 +3,8 @@ const express = require('express');
 const pg = require('pg');
 const cors = require('cors');
 const app = express();
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
 app.use(express.json())
 app.use(cors());
 
@@ -533,7 +535,8 @@ app.post('/api/login', async (req, res) => {
 
     // Cria token
     const token = jwt.sign({ worker_id: worker.id },'SECRET_KEY');
-
+    res.cookie('jwt', token, { httpOnly: true, secure: true, sameSite: 'none' });
+    
     //Verifica login
     res.status(200).json({ message: 'Login successful', token });
   } catch (error) {
@@ -542,25 +545,22 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-
-
-//Verifica o JWT 
-app.get('/api/protected', verifyToken, (req, res) => {
-  // Se aparecer esta mensagem, o token é valido
-  res.status(200).json({ message: 'Valid Token' });
-});
-
 function verifyToken(req, res, next) {
-  // Get the token
+  // Get the token from the Authorization header
   const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.split(' ')[1];
+  let token = authHeader && authHeader.split(' ')[1];
+
+  // If no token in the Authorization header, check for the token in the jwt cookie
+  if (!token) {
+    token = req.cookies.jwt;
+  }
 
   // No token
   if (!token) {
     return res.status(401).json({ error: 'Unauthorized: No token provided' });
   }
 
-  // Verify  token
+  // Verify token
   jwt.verify(token, 'SECRET_KEY', (err, decoded) => {
     if (err) {
       return res.status(403).json({ error: 'Forbidden: Invalid token' });
@@ -569,6 +569,21 @@ function verifyToken(req, res, next) {
     next();
   });
 }
+
+
+
+//Verifica o JWT 
+app.get('/api/protected', verifyToken, (req, res) => {
+  // Check if the 'jwt' cookie exists
+  if (req.cookies.jwt) {
+    res.status(200).json({ message: 'Valid Token' });
+  } else {
+    res.status(401).json({ error: 'Unauthorized: No token sad' });
+  }
+});
+
+
+
 
 
 
@@ -586,7 +601,7 @@ app.listen(3000, () => {
   console.log('Server listening on port 3000');
 });
 
-//--------------------------------ERROR-HANDLING MIDDLEWARE
+//--------------------------------ERROR-HANDLING
 //401
 app.use((err, req, res, next) => {
   if (err.status === 401) {

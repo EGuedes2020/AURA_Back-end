@@ -1,0 +1,30 @@
+PUBLIC_KEY: 6a90b1da1e9cd58f27dc
+
+SECRET_KEY: 91617cd74dd87f248b30
+
+
+//Client-Side
+
+const widget = uploadcare.Widget('[role=uploadcare-uploader]');
+widget.onChange((file) => {
+  const fileIdentifier = file.uuid;
+
+  // Send the file identifier to your Express server using AJAX, fetch, or any other method
+  // Adjust the URL and request method according to your setup
+  fetch('/upload', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ fileIdentifier })
+  })
+    .then(response => response.json())
+    .then(data => {
+      // Handle the response from the server if needed
+      console.log(data.fileUrl);
+    })
+    .catch(error => {
+      // Handle errors
+      console.error(error);
+    });
+});

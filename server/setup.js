@@ -5,6 +5,7 @@ const cors = require('cors');
 const app = express();
 const cookieParser = require('cookie-parser');
 const nodemailer = require('nodemailer')
+const Uploadcare = require('uploadcare');
 app.use(cookieParser());
 app.use(express.json())
 app.use(cors());
@@ -12,6 +13,57 @@ app.use(cors());
 //---------------------------------------AUTH
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+
+//--------------------------------------UPLOADCARE-ASSETS--upload/process/retrieve
+const uploadcare = new Uploadcare({
+  publicKey: '6a90b1da1e9cd58f27dc',
+  privateKey: '91617cd74dd87f248b30'
+});
+
+//Dar upload de um ficheiro
+app.post('/api/upload', async (req, res) => {
+  const fileIdentifier = req.body.fileIdentifier; // Assuming the client sends the file identifier
+
+  try {
+    const file = uploadcare.file(fileIdentifier);
+    const fileData = await file.getInfo();
+
+    // Access the file information (e.g., URL, size, etc.)
+    console.log(fileData.cdnUrl);
+
+    // Return a response with the file information if needed
+    res.json({ fileUrl: fileData.cdnUrl });
+  } catch (error) {
+    // Handle errors
+    console.error(error);
+    res.status(500).json({ error: 'File retrieval failed' });
+  }
+});
+
+
+//Obter uma imagem
+app.get('/image/:fileIdentifier', async (req, res) => {
+  const fileIdentifier = req.params.fileIdentifier; 
+  try {
+    const fileUrl = `https://ucarecdn.com/${fileIdentifier}/`; 
+
+    
+    const response = await axios.get(fileUrl, { responseType: 'stream' });
+
+    
+    res.set('Content-Type', response.headers['content-type']);
+
+    
+    response.data.pipe(res);
+  } catch (error) {
+  
+    console.error(error);
+    res.status(500).send('Image retrieval failed');
+  }
+});
+
+
+
 
 
 //----------------------------------------LIGAÇÃO A BASE DE DADOS
@@ -440,15 +492,19 @@ app.get('/api/institutions/:id/workers', [
         name: worker.name,
         email: worker.email,
         phone_number: worker.phone_number,
-        institution_name: institutionName
+        institution_name: institutionName,
+        avatar: worker.avatar, // Include the avatar URL in the response
       };
     });
+    
     res.json(formattedWorkers);
   } catch (err) {
     console.error(err);
     next(err);
   }
 });
+
+
 
 // (8) Sugestões de uma instituição
 app.get('/api/institutions/:id/suggestions', [

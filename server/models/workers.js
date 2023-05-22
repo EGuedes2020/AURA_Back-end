@@ -41,6 +41,10 @@ const Worker = sequelize.define('Worker', {
     type: DataTypes.STRING(255),
     allowNull: true
   },
+  avatar: {
+    type: DataTypes.STRING, // assuming avatar is a string column
+    allowNull: true, // or false, depending on your requirements
+  },
 
 password: {
       type: DataTypes.VIRTUAL,

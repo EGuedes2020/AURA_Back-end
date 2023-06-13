@@ -21,6 +21,11 @@ const Institution = sequelize.define('Institution', {
     type: DataTypes.STRING(255),
     allowNull: true,
   },
+  avatar: {
+    type: DataTypes.STRING, 
+    allowNull: true,
+  },
+
   location: {
     type: DataTypes.STRING(255),
     allowNull: true,

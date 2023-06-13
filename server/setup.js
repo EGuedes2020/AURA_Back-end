@@ -6,6 +6,9 @@ const app = express();
 const cookieParser = require('cookie-parser');
 const nodemailer = require('nodemailer')
 const Uploadcare = require('uploadcare');
+const fs = require('fs');
+require('dotenv').config();
+const axios = require('axios');
 app.use(cookieParser());
 app.use(express.json())
 app.use(cors());
@@ -14,32 +17,45 @@ app.use(cors());
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-//--------------------------------------UPLOADCARE-ASSETS--upload/process/retrieve
+//--------------------------------------UPLOADCARE-ASSETS
 const uploadcare = new Uploadcare({
-  publicKey: '6a90b1da1e9cd58f27dc',
-  privateKey: '91617cd74dd87f248b30'
+  publicKey: process.env.PUBLIC_KEY,
+  privateKey: process.env.PRIVATE_KEY,
 });
+
 
 //Dar upload de um ficheiro
-app.post('/api/upload', async (req, res) => {
-  const fileIdentifier = req.body.fileIdentifier; // Assuming the client sends the file identifier
-
-  try {
-    const file = uploadcare.file(fileIdentifier);
-    const fileData = await file.getInfo();
-
-    // Access the file information (e.g., URL, size, etc.)
-    console.log(fileData.cdnUrl);
-
-    // Return a response with the file information if needed
-    res.json({ fileUrl: fileData.cdnUrl });
-  } catch (error) {
-    // Handle errors
-    console.error(error);
-    res.status(500).json({ error: 'File retrieval failed' });
+app.post('/api/upload-avatar', (req, res) => {
+  if (!req.files || !req.files.file) {
+    res.status(400).send('No file uploaded');
+    return;
   }
-});
 
+  const file = req.files.file;
+  const tempFilePath = `./uploads/${file.name}`;
+
+  file.mv(tempFilePath, (error) => {
+    if (error) {
+      console.error('Error saving file:', error);
+      res.status(500).send('Error saving file');
+      return;
+    }
+
+    uploadcare.file.upload(tempFilePath, (uploadError, result) => {
+      fs.unlinkSync(tempFilePath); // Remove the temporary file
+
+      if (uploadError) {
+        console.error('Error uploading file:', uploadError);
+        res.status(500).send('Error uploading file');
+        return;
+      }
+
+      const fileUrl = result.cdnUrl; // The URL of the uploaded file
+      console.log('File uploaded successfully:', fileUrl);
+      res.status(200).send('File uploaded successfully');
+    });
+  });
+});
 
 //Obter uma imagem
 app.get('/image/:fileIdentifier', async (req, res) => {
@@ -66,13 +82,15 @@ app.get('/image/:fileIdentifier', async (req, res) => {
 
 
 
+
+
 //----------------------------------------LIGAÇÃO A BASE DE DADOS
 const { Sequelize } = require('sequelize');
-const sequelize = new Sequelize('AURA_db', 'postgres', 'postgres', {
-  host: 'aura-database-instance.cts91ecvtypq.eu-north-1.rds.amazonaws.com',
+
+const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
+  host: process.env.DB_HOST,
   dialect: 'postgres'
 });
-
 //----------------------------------------IMPORT DOS MODELOS
 const Institution = require('./models/institutions')
 const Suggestion  = require('./models/suggestions');
@@ -86,20 +104,21 @@ const { check,query, validationResult } = require('express-validator');
 
 //--------------------------------NODEMAILER
 app.post('/api/send-email', (req, res) => {
+  const { destinationEmail } = req.body;
   
   const transporter = nodemailer.createTransport({
-    host:'smtp.gmail.com',
-    service: 'gmail',
-    secure: true,
+    host: process.env.SMTP_HOST,
+    service: process.env.SMTP_SERVICE,
+    secure: process.env.SMTP_SECURE === 'true',
     auth: {
-      user: 'luisffsantoos@gmail.com',
-      pass: 'lomdhajbvvozpqqg'
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS
     }
   });
 
   const mailOptions = {
-    from: 'luisffsantoos@gmail.com',
-    to: 'luisssferreira24@gmail.com',
+    from: 'appaura.ua@gmail.com',
+    to: destinationEmail,
     subject: 'AURA INVITE',
     text: 'Usa este link para aceder à nossa aplicação: https://www.youtube.com/watch?v=dQw4w9WgXcQ ',
   };
@@ -230,6 +249,7 @@ app.delete('/api/suggestions/:id', async (req, res, next) => {
 });
 
 
+
 //(3.1) Todos os trabalhadores
 app.get('/api/workers', [
   check('name').optional().isLength({ min: 1 }).withMessage('Name is required and must be at least 1 character'),
@@ -250,7 +270,6 @@ app.get('/api/workers', [
     next(err);
   }
 });
-
 
 //(3.2) Atualiza um trabalhador 
 app.put('/api/workers/:id', [
@@ -277,7 +296,6 @@ app.put('/api/workers/:id', [
   }
 });
 
-
 //(3.3) Adiciona um trabalhador (semelhante ao 11)
 app.post('/api/workers', [
   check('name').isLength({ min: 1 }).withMessage('Name is required and must be at least 1 character'),
@@ -299,7 +317,6 @@ app.post('/api/workers', [
   }
 });
 
-
 //(3.4) Apaga um trabalhador trabalhadores
 app.delete('/api/workers/:id', async (req, res, next) => {
   try {
@@ -315,6 +332,7 @@ app.delete('/api/workers/:id', async (req, res, next) => {
     next(err);
   }
 });
+
 
 
 // (4.1) Todos os badges
@@ -340,6 +358,7 @@ app.get('/api/badges', [
   console.error(err.stack);
   res.status(500).json({ message: 'Internal server error' });
 });
+
 // (4.2) Atualiza um badge
 app.put('/api/badges/:id', async (req, res, next) => {
   try {
@@ -382,6 +401,7 @@ app.delete('/api/badges/:id', async (req, res, next) => {
     next(err);
   }
 });
+
 
 
 //(5.1) Todos os consumos de energia
@@ -503,9 +523,6 @@ app.get('/api/institutions/:id/workers', [
     next(err);
   }
 });
-
-
-
 // (8) Sugestões de uma instituição
 app.get('/api/institutions/:id/suggestions', [
   check('id').isInt().withMessage('Invalid institution ID'),
@@ -526,7 +543,6 @@ app.get('/api/institutions/:id/suggestions', [
     next(err);
   }
 });
-
 // (9) Consumos de energia de uma instituição
 app.get('/api/institutions/:id/energy', [
   check('id').isInt(),
@@ -547,7 +563,6 @@ app.get('/api/institutions/:id/energy', [
     next(err);
   }
 });
-
 // (10) Badges de uma instituição
 app.get('/api/institutions/:id/badges', [
   check('id').isInt(),
@@ -568,6 +583,7 @@ app.get('/api/institutions/:id/badges', [
     res.status(500).send(err.message);
   }
 });
+
 
 
 

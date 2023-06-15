@@ -98,6 +98,8 @@ const Worker = require('./models/workers')
 const Badge = require('./models/badges')
 const Energy = require('./models/energy_consumption')
 const InstitutionBadge = require('./models/institution_badges');
+const ActiveWarning = require('./models/active_warnings')
+const Rooms = require('./models/rooms')
 
 //--------------------------------EXPRESS VALIDATOR
 const { check,query, validationResult } = require('express-validator');
@@ -584,9 +586,187 @@ app.get('/api/institutions/:id/badges', [
   }
 });
 
+// 11.1(Todos os avisos)
+app.get('/api/institutions/active_warnings', async (req, res) => {
+  try {
+    const activeWarnings = await ActiveWarning.findAll();
+    res.json(activeWarnings);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to retrieve active warnings' });
+  }
+});
+
+// 11.2(Aviso especifico)
+app.get('/api/institutions/active_warnings/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const activeWarning = await ActiveWarning.findByPk(id);
+    if (!activeWarning) {
+      return res.status(404).json({ error: 'Active warning not found' });
+    }
+    res.json(activeWarning);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to retrieve active warning' });
+  }
+});
+
+// 11.3(Adicionar um novo alerta)
+app.post('/api/institutions/active_warnings', async (req, res) => {
+  const { institution_id, room, warning_time, devices_on } = req.body;
+  try {
+    const newActiveWarning = await ActiveWarning.create({
+      institution_id,
+      room,
+      warning_time,
+      devices_on,
+    });
+    res.status(201).json(newActiveWarning);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create active warning' });
+  }
+});
+
+//11.4 (Atualizar um alerta)
+app.put('/api/institutions/active_warnings/:id', async (req, res) => {
+  const { id } = req.params;
+  const { institution_id, room, warning_time, devices_on } = req.body;
+  try {
+    const activeWarning = await ActiveWarning.findByPk(id);
+    if (!activeWarning) {
+      return res.status(404).json({ error: 'Active warning not found' });
+    }
+    activeWarning.institution_id = institution_id;
+    activeWarning.room = room;
+    activeWarning.warning_time = warning_time;
+    activeWarning.devices_on = devices_on;
+    await activeWarning.save();
+    res.json(activeWarning);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update active warning' });
+  }
+});
+
+// 11.5(Apagar um alerta)
+app.delete('/api/institutions/active_warnings/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const activeWarning = await ActiveWarning.findByPk(id);
+    if (!activeWarning) {
+      return res.status(404).json({ error: 'Active warning not found' });
+    }
+    await activeWarning.destroy();
+    res.json({ message: 'Active warning deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete active warning' });
+  }
+});
+
+// 11.6(Avisos de uma instituição em específico)
+app.get('/api/active_warnings/institution/:institutionId', async (req, res) => {
+  const { institutionId } = req.params;
+  try {
+    const activeWarnings = await ActiveWarning.findAll({
+      where: { institution_id: institutionId },
+    });
+    res.json(activeWarnings);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to retrieve active warnings' });
+  }
+});
+
+// 12.1 (Todos as divisões)
+app.get('/api/institutions/rooms', async (req, res) => {
+  try {
+    const rooms = await Rooms.findAll();
+    res.json(rooms);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to retrieve rooms' });
+  }
+});
+
+// 12.2 (Uma divisão específica)
+app.get('/api/rooms/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const room = await Rooms.findByPk(id);
+    if (!room) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    res.json(room);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to retrieve room' });
+  }
+});
+
+// 12.3 (Adicionar uma divisão)
+app.post('/api/institutions/rooms', async (req, res) => {
+  const { institution_id, room_number, devices_per_division, total_warnings, institution_name } = req.body;
+  try {
+    const newRoom = await Rooms.create({
+      institution_id,
+      room_number,
+      devices_per_division,
+      total_warnings,
+      institution_name,
+    });
+    res.status(201).json(newRoom);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create room' });
+  }
+});
+
+// 12.4 (atualizar uma divisão)
+app.put('/api/institutions/rooms/:id', async (req, res) => {
+  const { id } = req.params;
+  const { institution_id, room_number, devices_per_division, total_warnings, institution_name } = req.body;
+  try {
+    const room = await Rooms.findByPk(id);
+    if (!room) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    room.institution_id = institution_id;
+    room.room_number = room_number;
+    room.devices_per_division = devices_per_division;
+    room.total_warnings = total_warnings;
+    room.institution_name = institution_name;
+    await room.save();
+    res.json(room);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update room' });
+  }
+});
+
+// 12.5 (apagar uma divisão)
+app.delete('/api/institutions/rooms/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const room = await Rooms.findByPk(id);
+    if (!room) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    await room.destroy();
+    res.json({ message: 'Room deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete room' });
+  }
+});
+
+//12.6 (Todas as divisões de uma instituição)
+app.get('/api/institutions/rooms/:institutionId', async (req, res) => {
+  const { institutionId } = req.params;
+  try {
+    const rooms = await Rooms.findAll({
+      where: { institution_id: institutionId },
+    });
+    res.json(rooms);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to retrieve rooms' });
+  }
+});
 
 
 
+//----------------------AUTH
 //(11) Registo de um novo utilizador
 app.post('/api/signup', async (req, res) => {
   try {

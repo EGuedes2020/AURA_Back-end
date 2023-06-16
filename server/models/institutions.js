@@ -33,6 +33,10 @@ const Institution = sequelize.define('Institution', {
 }, {
   tableName: 'institutions',
   timestamps: false, 
+},{
+  sequelize,
+  modelName: 'Institution',
+  tableName: 'institutions',
 });
 
 module.exports = Institution;

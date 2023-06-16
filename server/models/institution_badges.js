@@ -14,30 +14,46 @@ const InstitutionBadge = sequelize.define('InstitutionBadge', {
   institution_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    primaryKey: true,
     references: {
-      model: Institution,
-      key: 'id',
+      model: 'Institution',
+      key: 'id'
     },
+    onUpdate: 'NO ACTION',
+    onDelete: 'CASCADE'
   },
   badge_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    primaryKey: true,
     references: {
-      model: Badges,
-      key: 'id',
+      model: 'Badge',
+      key: 'id'
     },
+    onUpdate: 'NO ACTION',
+    onDelete: 'NO ACTION'
   },
-  institution_name: {
+  status: {
+    type: DataTypes.STRING(20),
+    allowNull: true
+  },
+  avatar: {
     type: DataTypes.STRING(255),
     allowNull: true
   },
-  badge_name: {
-    type: DataTypes.STRING(255),
+  description: {
+    type: DataTypes.TEXT,
     allowNull: true
   }
 }, {
   tableName: 'institution_badges',
   timestamps: false
+},{
+  sequelize,
+  modelName: 'InstitutionBadge',
+  tableName: 'institution_badges',
 });
+
+InstitutionBadge.belongsTo(Institution, { foreignKey: 'institution_id' });
 
 module.exports = InstitutionBadge;

@@ -9,29 +9,30 @@ const sequelize = new Sequelize('AURA_db', 'postgres', 'postgres', {
 const Badge = sequelize.define('Badge', {
   id: {
     type: DataTypes.INTEGER,
+    allowNull: false,
     primaryKey: true,
-    allowNull: false,
-    autoIncrement: true,
-  },
-  name: {
-    type: DataTypes.STRING(255),
-    allowNull: false,
-  },
-  season: {
-    type: DataTypes.STRING(50),
-    allowNull: true,
-  },
-  year: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
+    autoIncrement: true
   },
   description: {
     type: DataTypes.TEXT,
-    allowNull: true,
+    allowNull: true
   },
+  category: {
+    type: DataTypes.STRING(50),
+    allowNull: true
+  },
+  avatar_achieved: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  avatar_not_achieved: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  }
 }, {
   tableName: 'badges',
-  timestamps: false,
+  timestamps: false // Set to true if you have timestamp columns (e.g., createdAt, updatedAt)
 });
+
 
 module.exports = Badge;

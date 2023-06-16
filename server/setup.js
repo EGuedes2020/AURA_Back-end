@@ -481,14 +481,34 @@ app.get('/api/institutions-badges', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const institutionBadges = await InstitutionBadge.findAll();
+    const { institution_id, badge_id } = req.query;
+
+    // Build the query options based on the request parameters
+    const options = {
+      include: Institution,
+      where: {},
+      order: [['institution_id', 'ASC']],
+    };
+
+    if (institution_id) {
+      options.where.institution_id = institution_id;
+    }
+
+    if (badge_id) {
+      options.where.badge_id = badge_id;
+    }
+
+    // Retrieve the institution badges with the associated institution's name
+    const institutionBadges = await InstitutionBadge.findAll(options);
+
     res.json(institutionBadges);
   } catch (err) {
     console.error(err);
     next(err);
   }
 });
-InstitutionBadge.removeAttribute('id')
+
+
 
 // (7) Trabalhadores de uma instituição
 app.get('/api/institutions/:id/workers', [

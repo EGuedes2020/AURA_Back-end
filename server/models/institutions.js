@@ -10,7 +10,6 @@ const Institution = sequelize.define('Institution', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
-    allowNull: false,
     autoIncrement: true,
   },
   name: {
@@ -19,24 +18,21 @@ const Institution = sequelize.define('Institution', {
   },
   address: {
     type: DataTypes.STRING(255),
-    allowNull: true,
   },
-  avatar: {
-    type: DataTypes.STRING, 
-    allowNull: true,
-  },
-
   location: {
     type: DataTypes.STRING(255),
-    allowNull: true,
+  },
+  avatar: {
+    type: DataTypes.STRING(255),
+  },
+  total_warnings: {
+    type: DataTypes.INTEGER,
+  },
+  avg_response_time: {
+    type: DataTypes.INTEGER,
   },
 }, {
   tableName: 'institutions',
-  timestamps: false, 
-},{
-  sequelize,
-  modelName: 'Institution',
-  tableName: 'institutions',
+  timestamps: false,
 });
-
 module.exports = Institution;

@@ -25,37 +25,7 @@ const uploadcare = new Uploadcare({
 
 
 //Dar upload de um ficheiro
-app.post('/api/upload-avatar', (req, res) => {
-  if (!req.files || !req.files.file) {
-    res.status(400).send('No file uploaded');
-    return;
-  }
 
-  const file = req.files.file;
-  const tempFilePath = `./uploads/${file.name}`;
-
-  file.mv(tempFilePath, (error) => {
-    if (error) {
-      console.error('Error saving file:', error);
-      res.status(500).send('Error saving file');
-      return;
-    }
-
-    uploadcare.file.upload(tempFilePath, (uploadError, result) => {
-      fs.unlinkSync(tempFilePath); // Remove the temporary file
-
-      if (uploadError) {
-        console.error('Error uploading file:', uploadError);
-        res.status(500).send('Error uploading file');
-        return;
-      }
-
-      const fileUrl = result.cdnUrl; // The URL of the uploaded file
-      console.log('File uploaded successfully:', fileUrl);
-      res.status(200).send('File uploaded successfully');
-    });
-  });
-});
 
 //Obter uma imagem
 app.get('/image/:fileIdentifier', async (req, res) => {
@@ -77,12 +47,6 @@ app.get('/image/:fileIdentifier', async (req, res) => {
     res.status(500).send('Image retrieval failed');
   }
 });
-
-
-
-
-
-
 
 //----------------------------------------LIGAÇÃO A BASE DE DADOS
 const { Sequelize } = require('sequelize');
@@ -136,12 +100,20 @@ app.post('/api/send-email', (req, res) => {
   });
 });
 
-
 //------------------------------ROTAS---------------------------------------------------------
 // (1.1) Todas as instituições
 app.get('/api/institutions', async (req, res, next) => {
   try {
     const institutions = await Institution.findAll();
+    
+    // Calculate Score for each institution
+    institutions.forEach(institution => {
+      const avgResponseTime = institution.avg_response_time || 0;
+      const totalWarnings = institution.total_warnings || 0;
+      const score = Math.floor((1 / ((0.6 * avgResponseTime / 60) + (0.4 * totalWarnings / 40))) * 10000);
+      institution.setDataValue('Score', score);
+    });
+
     res.status(200).json(institutions);
   } catch (err) {
     next(err);

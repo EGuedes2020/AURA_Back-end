@@ -18,7 +18,8 @@
     "pg": "^8.10.0",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.31.0",
-    "uploadcare": "^0.4.8"
+    "uploadcare": "^0.4.8",
+    "uuid": "^9.0.0"
   },
   "name": "server",
   "version": "1.0.0",

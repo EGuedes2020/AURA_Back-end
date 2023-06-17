@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser');
 const nodemailer = require('nodemailer')
 const Uploadcare = require('uploadcare');
 const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 const axios = require('axios');
 app.use(cookieParser());
@@ -64,40 +65,67 @@ const Energy = require('./models/energy_consumption')
 const InstitutionBadge = require('./models/institution_badges');
 const ActiveWarning = require('./models/active_warnings')
 const Rooms = require('./models/rooms')
+const Invitation = require('./models/invitations')
 
 //--------------------------------EXPRESS VALIDATOR
 const { check,query, validationResult } = require('express-validator');
 
 //--------------------------------NODEMAILER
-app.post('/api/send-email', (req, res) => {
-  const { destinationEmail } = req.body;
-  
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    service: process.env.SMTP_SERVICE,
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS
-    }
-  });
+app.post('/api/send-email', async (req, res) => {
+  const { destinationEmail, name, institution } = req.body;
 
-  const mailOptions = {
-    from: 'appaura.ua@gmail.com',
-    to: destinationEmail,
-    subject: 'AURA INVITE',
-    text: 'Usa este link para aceder à nossa aplicação: https://www.youtube.com/watch?v=dQw4w9WgXcQ ',
-  };
+  try {
+    // Generate a unique token for the invitation
+    const token = uuidv4();
 
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error('Error occurred while sending email:', error);
-      res.status(500).json({ error: 'Failed to send email' });
-    } else {
-      console.log('Email sent:', info.response);
-      res.status(200).json({ message: 'Email sent successfully' });
-    }
-  });
+    // Calculate the expiration date (e.g., 24 hours from the current time)
+    const expiration = new Date();
+    expiration.setHours(expiration.getHours() + 24);
+
+    // Store the invitation details in the database
+    const invitation = await Invitation.create({
+      token,
+      email: destinationEmail,
+      status: 'pending',
+      expiration,
+      name,
+      institution,
+    });
+
+    // Create the registration link with the token
+    const registrationLink = `https://your-website.com/register?token=${invitation.token}`;
+
+    // Send the email
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      service: process.env.SMTP_SERVICE,
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      }
+    });
+
+    const mailOptions = {
+      from: 'appaura.ua@gmail.com',
+      to: destinationEmail,
+      subject: 'AURA INVITE',
+      text: `Use this link to access our application: ${registrationLink}`,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error occurred while sending email:', error);
+        res.status(500).json({ error: 'Failed to send email' });
+      } else {
+        console.log('Email sent:', info.response);
+        res.status(200).json({ message: 'Email sent successfully' });
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to send email' });
+  }
 });
 
 //------------------------------ROTAS---------------------------------------------------------

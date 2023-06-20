@@ -13,6 +13,7 @@ const axios = require('axios');
 app.use(cookieParser());
 app.use(express.json())
 app.use(cors());
+app.use(verifyToken);
 
 //---------------------------------------AUTH
 const bcrypt = require('bcrypt');
@@ -825,25 +826,33 @@ app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Encontra worker na BD
+    // Find worker in the database
     const worker = await Worker.findOne({ where: { email } });
 
     if (!worker) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Checka password
+    // Check password
     const passwordMatch = await bcrypt.compare(password, worker.password_hash);
     if (!passwordMatch) {
       return res.status(401).json({ error: 'Invalid password' });
     }
 
-    // Cria token
-    const token = jwt.sign({ worker_id: worker.id },'SECRET_KEY');
+    // Create token
+    const token = jwt.sign({ worker_id: worker.id }, 'SECRET_KEY');
     res.cookie('jwt', token, { httpOnly: true, secure: true, sameSite: 'none' });
-    
-    //Verifica login
-    res.status(200).json({ message: 'Login successful', token });
+
+    // Include user data in the response
+    const responseData = {
+      message: 'Login successful',
+      token,
+      worker_id: worker.id,
+      institution_id: worker.institution_id,
+      // Include other relevant data as needed
+    };
+
+    res.status(200).json(responseData);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Server error' });
@@ -960,6 +969,4 @@ app.use((err, req, res, next) => {
     next(err);
   }
 });
-
-
 

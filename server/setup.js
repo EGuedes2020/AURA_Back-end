@@ -889,6 +889,24 @@ app.get('/api/institutions/:institutionId/devices', async (req, res) => {
 
 
 
+app.get('/api/workers/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find worker in the database by ID
+    const worker = await Worker.findOne({ where: { id } });
+
+    if (!worker) {
+      return res.status(404).json({ error: 'Worker not found' });
+    }
+
+    // Return the worker details
+    res.status(200).json({ worker });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 
 //----------------------AUTH

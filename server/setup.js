@@ -13,7 +13,7 @@ const axios = require('axios');
 app.use(cookieParser());
 app.use(express.json())
 app.use(cors());
-app.use(verifyToken);
+//app.use(verifyToken);
 
 //---------------------------------------AUTH
 const bcrypt = require('bcrypt');
@@ -67,6 +67,7 @@ const InstitutionBadge = require('./models/institution_badges');
 const ActiveWarning = require('./models/active_warnings')
 const Rooms = require('./models/rooms')
 const Invitation = require('./models/invitations')
+const Device = require('./models/devices')
 
 //--------------------------------EXPRESS VALIDATOR
 const { check,query, validationResult } = require('express-validator');
@@ -786,6 +787,109 @@ app.get('/api/institutions/rooms/:institutionId', async (req, res) => {
 });
 
 
+//13.1 (Todos os dispositivos)
+app.get('/api/institutions/devices',  async (req, res) => {
+  try {
+    const devices = await Device.findAll();
+    res.status(200).json({ devices });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
+//13.2 (Adicionar um novo dispositivo)
+app.post('/api/institutions/devices',  async (req, res) => {
+  try {
+    const { institution_id, room, name_of_device, assigned, institution_name, room_name } = req.body;
+
+    const device = await Device.create({
+      institution_id,
+      room,
+      name_of_device,
+      assigned,
+      institution_name,
+      room_name
+    });
+
+    res.status(201).json({ device });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+//13.3 (Atualizar um dispositivo)
+app.put('/api/institutions/devices/:id',  async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { institution_id, room, name_of_device, assigned, institution_name, room_name } = req.body;
+
+    const device = await Device.findByPk(id);
+
+    if (!device) {
+      return res.status(404).json({ error: 'Device not found' });
+    }
+
+    device.institution_id = institution_id;
+    device.room = room;
+    device.name_of_device = name_of_device;
+    device.assigned = assigned;
+    device.institution_name = institution_name;
+    device.room_name = room_name;
+
+    await device.save();
+
+    res.status(200).json({ device });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+//13.4 (Apagar um dispositivo)
+app.delete('/api/institutions/devices/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const device = await Device.findByPk(id);
+
+    if (!device) {
+      return res.status(404).json({ error: 'Device not found' });
+    }
+
+    await device.destroy();
+
+    res.status(200).json({ message: 'Device deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+//13.5 (Dispositivos de uma instituição)
+app.get('/api/institutions/:institutionId/devices', async (req, res) => {
+  try {
+    const { institutionId } = req.params;
+
+    // Find all devices belonging to the specified institution, sorted by ID
+    const devices = await Device.findAll({
+      where: { institution_id: institutionId },
+      order: [['id', 'ASC']], // Sort by ID in ascending order
+    });
+
+    res.status(200).json({ devices });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
+
+
+
 
 //----------------------AUTH
 //(11) Registo de um novo utilizador
@@ -859,34 +963,34 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-function verifyToken(req, res, next) {
-  // Get the token from the Authorization header
-  const authHeader = req.headers.authorization;
-  let token = authHeader && authHeader.split(' ')[1];
 
-  // If no token in the Authorization header, check for the token in the jwt cookie
-  if (!token) {
-    token = req.cookies.jwt;
-  }
-  // No token
-  if (!token) {
-    return res.status(401).json({ error: 'Unauthorized: No token provided' });
-  }
+// function verifyToken(req, res, next) {
+//   // Get the token from the Authorization header
+//   const authHeader = req.headers.authorization;
+//   let token = authHeader && authHeader.split(' ')[1];
 
-  // Verify token
-  jwt.verify(token, 'SECRET_KEY', (err, decoded) => {
-    if (err) {
-      return res.status(403).json({ error: 'Forbidden: Invalid token' });
-    }
-    req.worker_id = decoded.worker_id;
-    next();
-  });
-}
+//   // If no token in the Authorization header, check for the token in the jwt cookie
+//   if (!token) {
+//     token = req.cookies.jwt;
+//   }
+//   // No token
+//   if (!token) {
+//     return res.status(401).json({ error: 'Unauthorized: No token provided' });
+//   }
 
+//   // Verify token
+//   jwt.verify(token, 'SECRET_KEY', (err, decoded) => {
+//     if (err) {
+//       return res.status(403).json({ error: 'Forbidden: Invalid token' });
+//     }
+//     req.worker_id = decoded.worker_id;
+//     next();
+//   });
+// }
 
 
 //Verifica o JWT 
-app.get('/api/protected', verifyToken, (req, res) => {
+app.get('/api/protected', (req, res) => {
   // Check if the 'jwt' cookie exists
   if (req.cookies.jwt) {
     res.status(200).json({ message: 'Valid Token' });

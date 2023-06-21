@@ -953,6 +953,7 @@ app.post('/api/login', async (req, res) => {
       token,
       worker_id: worker.id,
       institution_id: worker.institution_id,
+      role: worker.role,
       // Include other relevant data as needed
     };
 

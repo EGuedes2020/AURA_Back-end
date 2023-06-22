@@ -214,8 +214,76 @@ app.get('/api/inst/:id', async (req, res, next) => {
   }
 });
 
+app.get('/api/institutions/firstplace', async (req, res, next) => {
+  try {
+    const institutions = await Institution.findAll();
+    
+    // Calculate Score for each institution
+    institutions.forEach(institution => {
+      const avgResponseTime = institution.avg_response_time || 0;
+      const totalWarnings = institution.total_warnings || 0;
+      const score = Math.floor((1 / ((0.6 * avgResponseTime / 60) + (0.4 * totalWarnings / 40))) * 10000);
+      institution.setDataValue('Score', score);
+    });
 
+    // Sort institutions based on the calculated score in descending order
+    institutions.sort((a, b) => b.getDataValue('Score') - a.getDataValue('Score'));
 
+    const firstPlace = institutions[0];
+
+    res.status(200).json(firstPlace);
+  } catch (err) {
+    next(err);
+  }
+});
+
+//2nd place
+app.get('/api/institutions/secondplace', async (req, res, next) => {
+  try {
+    const institutions = await Institution.findAll();
+    
+    // Calculate Score for each institution
+    institutions.forEach(institution => {
+      const avgResponseTime = institution.avg_response_time || 0;
+      const totalWarnings = institution.total_warnings || 0;
+      const score = Math.floor((1 / ((0.6 * avgResponseTime / 60) + (0.4 * totalWarnings / 40))) * 10000);
+      institution.setDataValue('Score', score);
+    });
+
+    // Sort institutions based on the calculated score in descending order
+    institutions.sort((a, b) => b.getDataValue('Score') - a.getDataValue('Score'));
+
+    const secondPlace = institutions[1];
+
+    res.status(200).json(secondPlace);
+  } catch (err) {
+    next(err);
+  }
+});
+
+//3rd place
+app.get('/api/institutions/thirdplace', async (req, res, next) => {
+  try {
+    const institutions = await Institution.findAll();
+    
+    // Calculate Score for each institution
+    institutions.forEach(institution => {
+      const avgResponseTime = institution.avg_response_time || 0;
+      const totalWarnings = institution.total_warnings || 0;
+      const score = Math.floor((1 / ((0.6 * avgResponseTime / 60) + (0.4 * totalWarnings / 40))) * 10000);
+      institution.setDataValue('Score', score);
+    });
+
+    // Sort institutions based on the calculated score in descending order
+    institutions.sort((a, b) => b.getDataValue('Score') - a.getDataValue('Score'));
+
+    const thirdPlace = institutions[2];
+
+    res.status(200).json(thirdPlace);
+  } catch (err) {
+    next(err);
+  }
+});
 
 
 //(2.1) Todas as sugestões

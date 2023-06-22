@@ -511,7 +511,6 @@ app.get('/api/institutions-badges', [
 
     const { institution_id, badge_id } = req.query;
 
-    // Build the query options based on the request parameters
     const options = {
       include: Institution,
       where: {},
@@ -526,7 +525,6 @@ app.get('/api/institutions-badges', [
       options.where.badge_id = badge_id;
     }
 
-    // Retrieve the institution badges with the associated institution's name
     const institutionBadges = await InstitutionBadge.findAll(options);
 
     res.json(institutionBadges);
@@ -632,6 +630,32 @@ app.get('/api/institutions/:id/badges', [
     console.error(err);
     res.status(500).send(err.message);
   }
+});
+
+//Primeiros 4 badges
+app.get('/api/institutions/:institutionId/4badges', async (req, res, next) => {
+  try {
+    const institutionId = req.params.institutionId;
+    const badgeIds = [1, 12, 9, 4];
+
+    const badges = await InstitutionBadge.findAll({
+      where: {
+        institution_id: institutionId,
+        badge_id: badgeIds
+      },
+      attributes: ['badge_id', 'avatar']
+    });
+
+    res.status(200).json(badges);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Internal Server Error' });
 });
 
 // 11.1(Todos os avisos)

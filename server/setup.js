@@ -781,7 +781,7 @@ app.get('/api/institutions/:id/workers', [
 // (8) Sugestões de uma instituição
 app.get('/api/institutions/:id/suggestions', [
   check('id').isInt().withMessage('Invalid institution ID'),
-], async (req, res) => {
+], async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -791,6 +791,7 @@ app.get('/api/institutions/:id/suggestions', [
     const institutionId = req.params.id;
     const suggestions = await Suggestion.findAll({
       where: { institution_id: institutionId },
+      order: [['date_created', 'DESC']],
     });
     res.json(suggestions);
   } catch (err) {
@@ -798,6 +799,7 @@ app.get('/api/institutions/:id/suggestions', [
     next(err);
   }
 });
+
 // (9) Consumos de energia de uma instituição
 app.get('/api/institutions/:id/energy', [
   check('id').isInt(),

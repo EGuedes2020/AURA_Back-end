@@ -663,19 +663,27 @@ app.get('/api/energy', [
 
 //(5.2) Atualiza um consumos de energia
 app.put('/api/energy/:id', async (req, res, next) => {
+  const energyId = req.params.id;
+
   try {
-    const energy = await Energy.findByPk(req.params.id);
+    // Check if the energy consumption exists
+    const energy = await Energy.findByPk(energyId);
     if (!energy) {
-      return res.status(404).json({ message: 'Energy data not found' });
+      return res.status(404).json({ message: 'Energy consumption not found' });
     }
 
+    // Update the energy consumption
     await energy.update(req.body);
+
+    // Return the updated energy consumption
     res.json(energy);
   } catch (err) {
     console.error(err);
     next(err);
   }
 });
+
+
 
 //(5.3) Adiciona um consumo de energia
 app.post('/api/energy', async (req, res, next) => {

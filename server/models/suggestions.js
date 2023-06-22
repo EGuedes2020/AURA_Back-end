@@ -24,7 +24,7 @@ const Suggestion = sequelize.define('Suggestion', {
   },
   description: {
     type: DataTypes.TEXT,
-    allowNull: false,
+    allowNull: true,
   },
   date_created: {
     type: DataTypes.DATE,

@@ -190,6 +190,32 @@ app.delete('/api/institutions/:id', async (req, res, next) => {
   }
 });
 
+//(1.5)Uma instituição
+app.get('/api/inst/:id', async (req, res, next) => {
+  try {
+    const institutionId = req.params.id;
+    
+    // Retrieve the institution with the given ID
+    const institution = await Institution.findByPk(institutionId);
+
+    if (!institution) {
+      res.status(404).json({ error: 'Institution not found.' });
+    } else {
+      // Calculate the score for the institution
+      const avgResponseTime = institution.avg_response_time || 0;
+      const totalWarnings = institution.total_warnings || 0;
+      const score = Math.floor((1 / ((0.6 * avgResponseTime / 60) + (0.4 * totalWarnings / 40))) * 10000);
+      institution.setDataValue('Score', score);
+
+      res.status(200).json(institution);
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+
+
 
 
 //(2.1) Todas as sugestões

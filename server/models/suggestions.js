@@ -12,9 +12,9 @@ const sequelize = new Sequelize('AURA_db', 'postgres', 'postgres', {
 const Suggestion = sequelize.define('Suggestion', {
   id: {
     type: DataTypes.INTEGER,
-    allowNull: false,
     primaryKey: true,
     autoIncrement: true,
+    allowNull: false,
   },
   institution_id: {
     type: DataTypes.INTEGER,
@@ -28,7 +28,6 @@ const Suggestion = sequelize.define('Suggestion', {
   },
   date_created: {
     type: DataTypes.DATE,
-    allowNull: false,
     defaultValue: DataTypes.NOW,
   },
   institution_name: {
@@ -46,9 +45,13 @@ const Suggestion = sequelize.define('Suggestion', {
   number_of_votes: {
     type: DataTypes.INTEGER,
   },
+  data: {
+    type: DataTypes.DATEONLY,
+  },
 }, {
   tableName: 'suggestions',
   timestamps: false,
-})
+});
+
 
 module.exports = Suggestion;

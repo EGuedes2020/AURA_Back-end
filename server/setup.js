@@ -440,11 +440,17 @@ app.post('/api/institutions/:institutionId/suggestions', async (req, res, next) 
     };
 
     const suggestion = await Suggestion.create(suggestionData);
-    res.status(201).json(suggestion);
+    const sortedSuggestions = await Suggestion.findAll({
+      where: { institution_id: institutionId },
+      order: [['date_created', 'DESC']],
+    });
+
+    res.status(201).json(sortedSuggestions);
   } catch (err) {
     next(err);
   }
 });
+
 
 //(2.4) Apaga uma sugestão
 app.delete('/api/suggestions/:id', async (req, res, next) => {

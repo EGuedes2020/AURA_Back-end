@@ -48,6 +48,9 @@ const Suggestion = sequelize.define('Suggestion', {
   data: {
     type: DataTypes.DATEONLY,
   },
+  title: {
+    type: DataTypes.STRING(255),
+  },
 }, {
   tableName: 'suggestions',
   timestamps: false,

@@ -1018,14 +1018,22 @@ app.delete('/api/institutions/rooms/:id', async (req, res) => {
 app.get('/api/institutions/rooms/:institutionId', async (req, res) => {
   const { institutionId } = req.params;
   try {
+    const sumOfDevices = await Rooms.sum('devices_per_division', {
+      where: { institution_id: institutionId },
+    });
+    
     const rooms = await Rooms.findAll({
       where: { institution_id: institutionId },
     });
-    res.json(rooms);
+    
+    res.json({ sumOfDevices, rooms });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to retrieve rooms' });
+    console.error(error);
+    res.status(500).json({ error: 'Failed to retrieve rooms and sum of devices' });
   }
 });
+
+
 
 
 //13.1 (Todos os dispositivos)

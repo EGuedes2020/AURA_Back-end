@@ -346,6 +346,24 @@ app.delete('/api/suggestions/:id', async (req, res, next) => {
   }
 });
 
+//(2.5) Uma sugestão especifica
+app.get('/api/suggestions/:id', async (req, res, next) => {
+  try {
+    const suggestionId = req.params.id;
+    const suggestion = await Suggestion.findByPk(suggestionId);
+
+    if (!suggestion) {
+      return res.status(404).json({ error: 'Suggestion not found' });
+    }
+
+    res.json(suggestion);
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
+
 
 
 //(3.1) Todos os trabalhadores

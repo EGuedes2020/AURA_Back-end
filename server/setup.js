@@ -68,6 +68,7 @@ const ActiveWarning = require('./models/active_warnings')
 const Rooms = require('./models/rooms')
 const Invitation = require('./models/invitations')
 const Device = require('./models/devices')
+const WorkerVote = require('./models/workers_votes')
 
 //--------------------------------EXPRESS VALIDATOR
 const { check,query, validationResult } = require('express-validator');
@@ -131,6 +132,110 @@ app.post('/api/send-email', async (req, res) => {
 });
 
 //------------------------------ROTAS---------------------------------------------------------
+
+
+// GET route to fetch all worker votes
+app.get('/api/worker_votes', async (req, res, next) => {
+  try {
+    const workerVotes = await WorkerVote.findAll();
+    res.json(workerVotes);
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
+// GET route to fetch a specific worker vote by ID
+app.get('/api/worker_votes/:id', async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const workerVote = await WorkerVote.findByPk(id);
+    if (!workerVote) {
+      return res.status(404).json({ error: 'Worker vote not found' });
+    }
+    res.json(workerVote);
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
+// POST route to create a new worker vote
+app.post('/api/worker_votes', [
+  check('suggestionId').isInt(),
+  check('workerId').isInt(),
+  check('votes').isIn(['yes', 'no']),
+  check('workerName').isString(),
+], async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
+
+  const { suggestionId, workerId, votes, workerName } = req.body;
+  try {
+    const newWorkerVote = await WorkerVote.create({
+      suggestionId,
+      workerId,
+      votes,
+      workerName,
+    });
+    res.status(201).json(newWorkerVote);
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
+// PUT route to update a specific worker vote
+app.put('/api/worker_votes/:id', [
+  check('suggestionId').optional().isInt(),
+  check('workerId').optional().isInt(),
+  check('votes').optional().isIn(['yes', 'no']),
+  check('workerName').optional().isString(),
+], async (req, res, next) => {
+  const { id } = req.params;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
+
+  try {
+    const workerVote = await WorkerVote.findByPk(id);
+    if (!workerVote) {
+      return res.status(404).json({ error: 'Worker vote not found' });
+    }
+
+    const { suggestionId, workerId, votes, workerName } = req.body;
+    await workerVote.update({
+      suggestionId: suggestionId || workerVote.suggestionId,
+      workerId: workerId || workerVote.workerId,
+      votes: votes || workerVote.votes,
+      workerName: workerName || workerVote.workerName,
+    });
+
+    res.json(workerVote);
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
+// DELETE route to delete a specific worker vote
+app.delete('/api/worker_votes/:id', async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const workerVote = await WorkerVote.findByPk(id);
+    if (!workerVote) {
+      return res.status(404).json({ error: 'Worker vote not found' });
+    }
+    await workerVote.destroy();
+    res.sendStatus(204);
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
 // (1.1) Todas as instituições
 app.get('/api/institutions', async (req, res, next) => {
   try {

@@ -427,21 +427,19 @@ app.put('/api/suggestions/:id', async (req, res, next) => {
 });
 
 //(2.3) Cria uma nova sugestão
-app.post('/api/suggestions', async (req, res, next) => {
-  const { institutionId, ...suggestionData } = req.body;
+app.post('/api/institutions/:institutionId/suggestions', async (req, res, next) => {
+  const institutionId = req.params.institutionId;
 
   try {
-    const institution = await Institution.findByPk(institutionId);
-
-    if (!institution) {
-      return res.status(404).json({ error: 'Institution not found' });
-    }
-
-    const suggestion = await Suggestion.create({
+    const suggestionData = {
       institution_id: institutionId,
-      ...suggestionData,
-    });
+      description: req.body.description,
+      author_id: req.body.author_id,
+      title: req.body.title,
+      // Include any other fields you want to set for the suggestion
+    };
 
+    const suggestion = await Suggestion.create(suggestionData);
     res.status(201).json(suggestion);
   } catch (err) {
     next(err);

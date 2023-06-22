@@ -787,13 +787,35 @@ app.get('/api/institutions/:id/suggestions', [
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    
+
     const institutionId = req.params.id;
     const suggestions = await Suggestion.findAll({
       where: { institution_id: institutionId },
       order: [['date_created', 'DESC']],
     });
-    res.json(suggestions);
+
+    const formattedSuggestions = suggestions.map(suggestion => {
+      const { votes, status, number_of_votes } = suggestion;
+
+      // Check if votes is null and set it to 0
+      const formattedVotes = votes === null ? 0 : votes;
+
+      // Check if status is null and set it to 'pending'
+      const formattedStatus = status === null ? 'pending' : status;
+
+      // Check if number_of_votes is null and set it to 0
+      const formattedNumberOfVotes = number_of_votes === null ? 0 : number_of_votes;
+
+      // Return the suggestion with formatted votes, status, and number_of_votes
+      return {
+        ...suggestion.toJSON(),
+        votes: formattedVotes,
+        status: formattedStatus,
+        number_of_votes: formattedNumberOfVotes,
+      };
+    });
+
+    res.json(formattedSuggestions);
   } catch (err) {
     console.error(err);
     next(err);

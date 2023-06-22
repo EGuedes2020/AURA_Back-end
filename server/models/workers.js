@@ -10,7 +10,6 @@ const Worker = sequelize.define('Worker', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
-    allowNull: false,
     autoIncrement: true,
   },
   name: {
@@ -28,10 +27,6 @@ const Worker = sequelize.define('Worker', {
   institution_id: {
     type: DataTypes.INTEGER,
     allowNull: true,
-    references: {
-      model: Institution,
-      key: 'id',
-    },
   },
   role: {
     type: DataTypes.STRING(50),
@@ -39,27 +34,27 @@ const Worker = sequelize.define('Worker', {
   },
   institution_name: {
     type: DataTypes.STRING(255),
-    allowNull: true
+    allowNull: true,
+  },
+  password_hash: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
   },
   avatar: {
-    type: DataTypes.STRING, // assuming avatar is a string column
-    allowNull: true, // or false, depending on your requirements
+    type: DataTypes.STRING(255),
+    allowNull: true,
   },
-
-password: {
-      type: DataTypes.VIRTUAL,
-      allowNull: true,
-      validate: {
-        len: [6, 255],
-      },
-    },
-    password_hash: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-  }, {
-    tableName: 'workers',
-    timestamps: false,
+  birth_date: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+  },
+  address: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
+}, {
+  tableName: 'workers',
+  timestamps: false,
     hooks: {
       beforeSave: async (worker) => {
         if (worker.changed('password')) {

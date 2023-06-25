@@ -1,10 +1,10 @@
-const { DataTypes,Sequelize } = require('sequelize');
 const Institution = require('./institutions');
 
-const sequelize = new Sequelize('AURA_db', 'postgres', 'postgres', {
-  host: 'aura-database-instance.cts91ecvtypq.eu-north-1.rds.amazonaws.com',
-  dialect: 'postgres'
-});
+const { Sequelize, DataTypes } = require('sequelize');
+const sequelize = new Sequelize('AURA_DB_V2', 'postgres', 'postgres', {
+    host: 'postgres-1.cts91ecvtypq.eu-north-1.rds.amazonaws.com',
+    dialect: 'postgres'
+  });
 
 const Energy = sequelize.define('EnergyConsumption', {
   id: {
@@ -28,6 +28,10 @@ const Energy = sequelize.define('EnergyConsumption', {
   month: {
     type: DataTypes.INTEGER,
     allowNull: false,
+  },
+  month_name: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
   },
   energy_consumed: {
     type: DataTypes.DOUBLE,

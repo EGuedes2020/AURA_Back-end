@@ -1,10 +1,9 @@
-const { DataTypes,Sequelize } = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
+const sequelize = new Sequelize('AURA_DB_V2', 'postgres', 'postgres', {
+    host: 'postgres-1.cts91ecvtypq.eu-north-1.rds.amazonaws.com',
+    dialect: 'postgres'
+  });
 
-
-const sequelize = new Sequelize('Aura_db', 'postgres', 'postgres', {
-  host: 'aura-database-instance.cts91ecvtypq.eu-north-1.rds.amazonaws.com',
-  dialect: 'postgres',
-});
 
 // Import models
 const Badges = require('./badges')(sequelize, DataTypes);

@@ -1,13 +1,13 @@
-const { DataTypes,Sequelize } = require('sequelize');
 const Institution = require('./institutions');
 const Badges = require('./badges');
 
 
 
-const sequelize = new Sequelize('AURA_db', 'postgres', 'postgres', {
-  host: 'aura-database-instance.cts91ecvtypq.eu-north-1.rds.amazonaws.com',
-  dialect: 'postgres'
-});
+const { Sequelize, DataTypes } = require('sequelize');
+const sequelize = new Sequelize('AURA_DB_V2', 'postgres', 'postgres', {
+    host: 'postgres-1.cts91ecvtypq.eu-north-1.rds.amazonaws.com',
+    dialect: 'postgres'
+  });
 
 
 const InstitutionBadge = sequelize.define('InstitutionBadge', {

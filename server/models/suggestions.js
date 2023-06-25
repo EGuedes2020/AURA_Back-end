@@ -2,11 +2,10 @@ const Institution = require('./institutions');
 const Worker = require('./workers');
 
 const { Sequelize, DataTypes } = require('sequelize');
-
-const sequelize = new Sequelize('AURA_db', 'postgres', 'postgres', {
-  host: 'aura-database-instance.cts91ecvtypq.eu-north-1.rds.amazonaws.com',
-  dialect: 'postgres'
-});
+const sequelize = new Sequelize('AURA_DB_V2', 'postgres', 'postgres', {
+    host: 'postgres-1.cts91ecvtypq.eu-north-1.rds.amazonaws.com',
+    dialect: 'postgres'
+  });
 
 
 const Suggestion = sequelize.define('Suggestion', {
